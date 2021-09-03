@@ -8,7 +8,6 @@
 
   outputs = { self, nixpkgs, flake-utils, poetry2nix, nixops }:
     {
-      # Nixpkgs overlay providing the application
       overlay = nixpkgs.lib.composeManyExtensions [
         poetry2nix.overlay
         (final: prev:
@@ -35,6 +34,11 @@
         packages.nixops-ovh = pkgs.nixops-ovh;
         apps.nixops-ovh = flake-utils.lib.mkApp { drv = packages.nixops-ovh; };
 
-        devShell = (pkgs.poetry2nix.mkPoetryEnv { projectDir = ./.; }).env;
+        devShell =
+          let pythonEnv = (pkgs.poetry2nix.mkPoetryEnv { projectDir = ./.; });
+          in pkgs.mkShell {
+            name = "nixops-ovh";
+            nativeBuildInputs = [ pythonEnv pkgs.poetry ];
+          };
       }));
 }
